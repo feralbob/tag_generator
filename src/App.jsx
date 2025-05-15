@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
 import { ChromePicker } from 'react-color';
-import { PlusIcon, TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, ArrowDownTrayIcon, PrinterIcon } from '@heroicons/react/24/outline';
 
 const CR80_WIDTH_MM = 85.6;
 const CR80_HEIGHT_MM = 53.98;
@@ -112,6 +112,29 @@ function App() {
     link.click();
   };
 
+  const printPDF = () => {
+    if (!fireDepartment) return;
+    const printWindow = window.open(pdfUrl);
+    
+    // Wait for the PDF to load in the new window
+    const checkPDFLoaded = setInterval(() => {
+      try {
+        // Check if the PDF viewer is ready
+        if (printWindow.document.readyState === 'complete' && 
+            printWindow.document.querySelector('embed')?.getAttribute('type') === 'application/pdf') {
+          clearInterval(checkPDFLoaded);
+          printWindow.print();
+        }
+      } catch (e) {
+        // If we can't access the window (e.g., it was closed), clear the interval
+        clearInterval(checkPDFLoaded);
+      }
+    }, 100);
+
+    // Clear the interval after 10 seconds to prevent infinite checking
+    setTimeout(() => clearInterval(checkPDFLoaded), 10000);
+  };
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
@@ -209,14 +232,24 @@ function App() {
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">PDF Preview</h2>
-              <button
-                onClick={downloadPDF}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center gap-2"
-                disabled={!fireDepartment}
-              >
-                <ArrowDownTrayIcon className="h-5 w-5" />
-                Download PDF
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={printPDF}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
+                  disabled={!fireDepartment}
+                >
+                  <PrinterIcon className="h-5 w-5" />
+                  Print PDF
+                </button>
+                <button
+                  onClick={downloadPDF}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center gap-2"
+                  disabled={!fireDepartment}
+                >
+                  <ArrowDownTrayIcon className="h-5 w-5" />
+                  Download PDF
+                </button>
+              </div>
             </div>
             
             <div className="border rounded-lg overflow-hidden">
