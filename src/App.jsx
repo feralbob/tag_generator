@@ -65,86 +65,54 @@ function App() {
       format: [CR80_HEIGHT_MM, CR80_WIDTH_MM]
     });
 
-    debouncedTags.forEach((tag, index) => {
-      if (index > 0) doc.addPage();
-      // Background
-      doc.setFillColor(tag.backgroundColor);
-      doc.rect(0, 0, CR80_HEIGHT_MM, CR80_WIDTH_MM, 'F');
-      doc.setTextColor(tag.textColor);
-      doc.setFont('helvetica', 'bold');
+    debouncedTags.forEach((tag, tagIdx) => {
+      for (let i = 0; i < 2; i++) {
+        // Only add a new page if this is not the very first page
+        if (tagIdx !== 0 || i !== 0) doc.addPage();
+        // Background
+        doc.setFillColor(tag.backgroundColor);
+        doc.rect(0, 0, CR80_HEIGHT_MM, CR80_WIDTH_MM, 'F');
+        doc.setTextColor(tag.textColor);
+        doc.setDrawColor(tag.textColor);
+        doc.setFont('helvetica', 'bold');
 
-      // Fire Department Name (top, bold, wrapped)
-      doc.setFontSize(18);
-      doc.text(
-        debouncedFireDepartment,
-        CR80_HEIGHT_MM / 2,
-        18,
-        {
-          align: 'center',
-          maxWidth: CR80_HEIGHT_MM - 8 // 4mm padding on each side
-        }
-      );
+        // Fire Department Name (top, bold, wrapped)
+        doc.setFontSize(18);
+        doc.text(
+          debouncedFireDepartment,
+          CR80_HEIGHT_MM / 2,
+          18,
+          {
+            align: 'center',
+            maxWidth: CR80_HEIGHT_MM - 8 // 4mm padding on each side
+          }
+        );
 
-      // Member Number (very large, bold, centered)
-      doc.setFontSize(60);
-      doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, CR80_WIDTH_MM/2 + 10, { align: 'center' });
+        // Member Number (very large, bold, centered)
+        doc.setFontSize(60);
+        doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, CR80_WIDTH_MM/2 + 10, { align: 'center' });
 
-      // Role and Member Name (bottom, bold, underlined, two lines)
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.textWithLink(tag.role, CR80_HEIGHT_MM/2, CR80_WIDTH_MM - 22, { align: 'center' });
-      doc.setLineWidth(0.8);
-      const roleWidth = doc.getTextWidth(tag.role);
-      doc.line(
-        CR80_HEIGHT_MM/2 - roleWidth/2,
-        CR80_WIDTH_MM - 20,
-        CR80_HEIGHT_MM/2 + roleWidth/2,
-        CR80_WIDTH_MM - 20
-      );
-      doc.text(tag.memberName, CR80_HEIGHT_MM/2, CR80_WIDTH_MM - 10, { align: 'center' });
-      const nameWidth = doc.getTextWidth(tag.memberName);
-      doc.line(
-        CR80_HEIGHT_MM/2 - nameWidth/2,
-        CR80_WIDTH_MM - 8,
-        CR80_HEIGHT_MM/2 + nameWidth/2,
-        CR80_WIDTH_MM - 8
-      );
-
-      // Add second page with the same tag
-      doc.addPage();
-      doc.setFillColor(tag.backgroundColor);
-      doc.rect(0, 0, CR80_HEIGHT_MM, CR80_WIDTH_MM, 'F');
-      doc.setTextColor(tag.textColor);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.text(
-        debouncedFireDepartment,
-        CR80_HEIGHT_MM / 2,
-        18,
-        {
-          align: 'center',
-          maxWidth: CR80_HEIGHT_MM - 8
-        }
-      );
-      doc.setFontSize(60);
-      doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, CR80_WIDTH_MM/2 + 10, { align: 'center' });
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.textWithLink(tag.role, CR80_HEIGHT_MM/2, CR80_WIDTH_MM - 22, { align: 'center' });
-      doc.setLineWidth(0.8);
-      doc.line(
-        CR80_HEIGHT_MM/2 - roleWidth/2,
-        CR80_WIDTH_MM - 20,
-        CR80_HEIGHT_MM/2 + roleWidth/2,
-        CR80_WIDTH_MM - 20
-      );
-      doc.textWithLink(tag.memberName, CR80_HEIGHT_MM/2, CR80_WIDTH_MM - 10, { align: 'center' });
-      doc.line(
-        CR80_HEIGHT_MM/2 - nameWidth/2,
-        CR80_WIDTH_MM - 8,
-        CR80_HEIGHT_MM/2 + nameWidth/2,
-        CR80_WIDTH_MM - 8
-      );
+        // Role and Member Name (bottom, bold, underlined, two lines)
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text(tag.role, CR80_HEIGHT_MM/2, CR80_WIDTH_MM - 22, { align: 'center' });
+        doc.setLineWidth(0.8);
+        const roleWidth = doc.getTextWidth(tag.role);
+        doc.line(
+          CR80_HEIGHT_MM/2 - roleWidth/2,
+          CR80_WIDTH_MM - 20,
+          CR80_HEIGHT_MM/2 + roleWidth/2,
+          CR80_WIDTH_MM - 20
+        );
+        doc.text(tag.memberName, CR80_HEIGHT_MM/2, CR80_WIDTH_MM - 10, { align: 'center' });
+        const nameWidth = doc.getTextWidth(tag.memberName);
+        doc.line(
+          CR80_HEIGHT_MM/2 - nameWidth/2,
+          CR80_WIDTH_MM - 8,
+          CR80_HEIGHT_MM/2 + nameWidth/2,
+          CR80_WIDTH_MM - 8
+        );
+      }
     });
 
     const pdfBlob = doc.output('blob');
