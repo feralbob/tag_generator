@@ -101,8 +101,18 @@ function App() {
     generatePDF();
   }, [generatePDF]);
 
+  const areAllTagsComplete = useCallback(() => {
+    if (!fireDepartment) return false;
+    
+    return tags.every(tag => 
+      tag.memberNumber.trim() !== '' &&
+      tag.memberName.trim() !== '' &&
+      tag.role !== ''
+    );
+  }, [fireDepartment, tags]);
+
   const downloadPDF = () => {
-    if (!fireDepartment) return;
+    if (!areAllTagsComplete()) return;
     const date = new Date().toISOString().split('T')[0];
     const filename = `${fireDepartment.replace(/\s+/g, '_')}_${date}.pdf`;
     
@@ -113,7 +123,7 @@ function App() {
   };
 
   const printPDF = () => {
-    if (!fireDepartment) return;
+    if (!areAllTagsComplete()) return;
     const printWindow = window.open(pdfUrl);
     
     // Wait for the PDF to load in the new window
@@ -235,16 +245,18 @@ function App() {
               <div className="flex gap-2">
                 <button
                   onClick={printPDF}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
-                  disabled={!fireDepartment}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!areAllTagsComplete()}
+                  title={!areAllTagsComplete() ? "Please fill in all fields for all tags" : "Print PDF"}
                 >
                   <PrinterIcon className="h-5 w-5" />
                   Print PDF
                 </button>
                 <button
                   onClick={downloadPDF}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center gap-2"
-                  disabled={!fireDepartment}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!areAllTagsComplete()}
+                  title={!areAllTagsComplete() ? "Please fill in all fields for all tags" : "Download PDF"}
                 >
                   <ArrowDownTrayIcon className="h-5 w-5" />
                   Download PDF
