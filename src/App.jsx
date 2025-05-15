@@ -7,8 +7,8 @@ const CR80_WIDTH_MM = 85.6;
 const CR80_HEIGHT_MM = 53.98;
 
 function App() {
+  const [fireDepartment, setFireDepartment] = useState('');
   const [tags, setTags] = useState([{
-    fireDepartment: '',
     memberNumber: '',
     memberName: '',
     role: '',
@@ -20,7 +20,6 @@ function App() {
 
   const addTag = () => {
     setTags([...tags, {
-      fireDepartment: '',
       memberNumber: '',
       memberName: '',
       role: '',
@@ -55,7 +54,7 @@ function App() {
       
       doc.setTextColor(tag.textColor);
       doc.setFontSize(12);
-      doc.text(tag.fireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
+      doc.text(fireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
       doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, 20, { align: 'center' });
       doc.text(tag.memberName, CR80_HEIGHT_MM/2, 30, { align: 'center' });
       doc.text(tag.role, CR80_HEIGHT_MM/2, 40, { align: 'center' });
@@ -66,7 +65,7 @@ function App() {
       doc.rect(0, 0, CR80_HEIGHT_MM, CR80_WIDTH_MM, 'F');
       
       doc.setTextColor(tag.textColor);
-      doc.text(tag.fireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
+      doc.text(fireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
       doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, 20, { align: 'center' });
       doc.text(tag.memberName, CR80_HEIGHT_MM/2, 30, { align: 'center' });
       doc.text(tag.role, CR80_HEIGHT_MM/2, 40, { align: 'center' });
@@ -79,12 +78,12 @@ function App() {
 
   useEffect(() => {
     generatePDF();
-  }, [tags]);
+  }, [tags, fireDepartment]);
 
   const downloadPDF = () => {
-    if (!tags[0].fireDepartment) return;
+    if (!fireDepartment) return;
     const date = new Date().toISOString().split('T')[0];
-    const filename = `${tags[0].fireDepartment.replace(/\s+/g, '_')}_${date}.pdf`;
+    const filename = `${fireDepartment.replace(/\s+/g, '_')}_${date}.pdf`;
     
     const link = document.createElement('a');
     link.href = pdfUrl;
@@ -100,6 +99,17 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left side - Tag Editor */}
           <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4">Fire Department</h2>
+              <input
+                type="text"
+                placeholder="Fire Department Name"
+                value={fireDepartment}
+                onChange={(e) => setFireDepartment(e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+            </div>
+
             {tags.map((tag, index) => (
               <div key={index} className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex justify-between items-center mb-4">
@@ -115,13 +125,6 @@ function App() {
                 </div>
                 
                 <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Fire Department Name"
-                    value={tag.fireDepartment}
-                    onChange={(e) => updateTag(index, 'fireDepartment', e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
                   <input
                     type="text"
                     placeholder="Member Number"
@@ -180,7 +183,7 @@ function App() {
               <button
                 onClick={downloadPDF}
                 className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center gap-2"
-                disabled={!tags[0].fireDepartment}
+                disabled={!fireDepartment}
               >
                 <ArrowDownTrayIcon className="h-5 w-5" />
                 Download PDF
