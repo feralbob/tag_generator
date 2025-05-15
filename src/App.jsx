@@ -41,9 +41,9 @@ function App() {
 
   const generatePDF = () => {
     const doc = new jsPDF({
-      orientation: 'landscape',
+      orientation: 'portrait',
       unit: 'mm',
-      format: [CR80_WIDTH_MM, CR80_HEIGHT_MM]
+      format: [CR80_HEIGHT_MM, CR80_WIDTH_MM]
     });
 
     tags.forEach((tag, index) => {
@@ -51,25 +51,25 @@ function App() {
       
       // First tag on the page
       doc.setFillColor(tag.backgroundColor);
-      doc.rect(0, 0, CR80_WIDTH_MM, CR80_HEIGHT_MM, 'F');
+      doc.rect(0, 0, CR80_HEIGHT_MM, CR80_WIDTH_MM, 'F');
       
       doc.setTextColor(tag.textColor);
       doc.setFontSize(12);
-      doc.text(tag.fireDepartment, CR80_WIDTH_MM/2, 10, { align: 'center' });
-      doc.text(tag.memberNumber, CR80_WIDTH_MM/2, 20, { align: 'center' });
-      doc.text(tag.memberName, CR80_WIDTH_MM/2, 30, { align: 'center' });
-      doc.text(tag.role, CR80_WIDTH_MM/2, 40, { align: 'center' });
+      doc.text(tag.fireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
+      doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, 20, { align: 'center' });
+      doc.text(tag.memberName, CR80_HEIGHT_MM/2, 30, { align: 'center' });
+      doc.text(tag.role, CR80_HEIGHT_MM/2, 40, { align: 'center' });
 
       // Add second page with the same tag
       doc.addPage();
       doc.setFillColor(tag.backgroundColor);
-      doc.rect(0, 0, CR80_WIDTH_MM, CR80_HEIGHT_MM, 'F');
+      doc.rect(0, 0, CR80_HEIGHT_MM, CR80_WIDTH_MM, 'F');
       
       doc.setTextColor(tag.textColor);
-      doc.text(tag.fireDepartment, CR80_WIDTH_MM/2, 10, { align: 'center' });
-      doc.text(tag.memberNumber, CR80_WIDTH_MM/2, 20, { align: 'center' });
-      doc.text(tag.memberName, CR80_WIDTH_MM/2, 30, { align: 'center' });
-      doc.text(tag.role, CR80_WIDTH_MM/2, 40, { align: 'center' });
+      doc.text(tag.fireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
+      doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, 20, { align: 'center' });
+      doc.text(tag.memberName, CR80_HEIGHT_MM/2, 30, { align: 'center' });
+      doc.text(tag.role, CR80_HEIGHT_MM/2, 40, { align: 'center' });
     });
 
     const pdfBlob = doc.output('blob');
