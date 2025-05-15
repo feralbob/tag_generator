@@ -160,13 +160,21 @@ function App() {
                     onChange={(e) => updateTag(index, 'memberName', e.target.value)}
                     className="w-full p-2 border rounded"
                   />
-                  <input
-                    type="text"
-                    placeholder="Role"
+                  <select
                     value={tag.role}
                     onChange={(e) => updateTag(index, 'role', e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
+                    className="w-full p-2 border rounded bg-white"
+                  >
+                    <option value="">Select Role</option>
+                    <option value="Probationary">Probationary</option>
+                    <option value="Firefighter">Firefighter</option>
+                    <option value="Water Supply">Water Supply</option>
+                    <option value="Ground Support">Ground Support</option>
+                    <option value="Lieutenant">Lieutenant</option>
+                    <option value="Captain">Captain</option>
+                    <option value="Deputy Chief">Deputy Chief</option>
+                    <option value="Chief">Chief</option>
+                  </select>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
