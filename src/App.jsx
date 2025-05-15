@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
-import { ChromePicker } from 'react-color';
 import { PlusIcon, TrashIcon, ArrowDownTrayIcon, PrinterIcon } from '@heroicons/react/24/outline';
 
 const CR80_WIDTH_MM = 85.6;
@@ -212,17 +211,25 @@ function App() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Text Color</label>
-                      <ChromePicker
-                        color={tag.textColor}
-                        onChange={(color) => updateTag(index, 'textColor', color.hex)}
-                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={tag.textColor}
+                          onChange={(e) => updateTag(index, 'textColor', e.target.value)}
+                          className="h-8 w-full p-0 border border-gray-300 rounded cursor-pointer"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Background Color</label>
-                      <ChromePicker
-                        color={tag.backgroundColor}
-                        onChange={(color) => updateTag(index, 'backgroundColor', color.hex)}
-                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={tag.backgroundColor}
+                          onChange={(e) => updateTag(index, 'backgroundColor', e.target.value)}
+                          className="h-8 w-full p-0 border border-gray-300 rounded cursor-pointer"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
