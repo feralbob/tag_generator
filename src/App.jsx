@@ -1,10 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
 import { ChromePicker } from 'react-color';
 import { PlusIcon, TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 const CR80_WIDTH_MM = 85.6;
 const CR80_HEIGHT_MM = 53.98;
+
+// Custom debounce hook
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 function App() {
   const [fireDepartment, setFireDepartment] = useState('');
@@ -17,6 +34,10 @@ function App() {
   }]);
 
   const [pdfUrl, setPdfUrl] = useState('');
+
+  // Debounce the tags and fireDepartment values
+  const debouncedTags = useDebounce(tags, 500);
+  const debouncedFireDepartment = useDebounce(fireDepartment, 500);
 
   const addTag = () => {
     setTags([...tags, {
@@ -38,14 +59,14 @@ function App() {
     setTags(newTags);
   };
 
-  const generatePDF = () => {
+  const generatePDF = useCallback(() => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: [CR80_HEIGHT_MM, CR80_WIDTH_MM]
     });
 
-    tags.forEach((tag, index) => {
+    debouncedTags.forEach((tag, index) => {
       if (index > 0) doc.addPage();
       
       // First tag on the page
@@ -54,7 +75,7 @@ function App() {
       
       doc.setTextColor(tag.textColor);
       doc.setFontSize(12);
-      doc.text(fireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
+      doc.text(debouncedFireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
       doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, 20, { align: 'center' });
       doc.text(tag.memberName, CR80_HEIGHT_MM/2, 30, { align: 'center' });
       doc.text(tag.role, CR80_HEIGHT_MM/2, 40, { align: 'center' });
@@ -65,7 +86,7 @@ function App() {
       doc.rect(0, 0, CR80_HEIGHT_MM, CR80_WIDTH_MM, 'F');
       
       doc.setTextColor(tag.textColor);
-      doc.text(fireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
+      doc.text(debouncedFireDepartment, CR80_HEIGHT_MM/2, 10, { align: 'center' });
       doc.text(tag.memberNumber, CR80_HEIGHT_MM/2, 20, { align: 'center' });
       doc.text(tag.memberName, CR80_HEIGHT_MM/2, 30, { align: 'center' });
       doc.text(tag.role, CR80_HEIGHT_MM/2, 40, { align: 'center' });
@@ -74,11 +95,11 @@ function App() {
     const pdfBlob = doc.output('blob');
     const url = URL.createObjectURL(pdfBlob);
     setPdfUrl(url);
-  };
+  }, [debouncedTags, debouncedFireDepartment]);
 
   useEffect(() => {
     generatePDF();
-  }, [tags, fireDepartment]);
+  }, [generatePDF]);
 
   const downloadPDF = () => {
     if (!fireDepartment) return;
