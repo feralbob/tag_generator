@@ -38,6 +38,17 @@ function App() {
   const debouncedTags = useDebounce(tags, 500);
   const debouncedFireDepartment = useDebounce(fireDepartment, 500);
 
+  // Role to color mapping
+  const roleColorMap = {
+    'Firefighter': { textColor: '#FFFFFF', backgroundColor: '#FF0000' }, // White on Red
+    'Captain': { textColor: '#FFFFFF', backgroundColor: '#000000' },     // White on Black
+    'Ground Support': { textColor: '#FFFFFF', backgroundColor: '#00FF00' }, // White on Green
+    'Chief': { textColor: '#000000', backgroundColor: '#FFFFFF' },       // Black on White
+    'Deputy Chief': { textColor: '#000000', backgroundColor: '#FFFFFF' },// Black on White
+    'Lieutenant': { textColor: '#FFFFFF', backgroundColor: '#000000' },  // White on Black
+    'Water Supply': { textColor: '#FFFFFF', backgroundColor: '#0000FF' },  // White on Blue
+  };
+
   const addTag = () => {
     setTags([...tags, {
       memberNumber: '',
@@ -54,7 +65,17 @@ function App() {
 
   const updateTag = (index, field, value) => {
     const newTags = [...tags];
-    newTags[index] = { ...newTags[index], [field]: value };
+    // If the role is being changed, update colors if mapping exists
+    if (field === 'role' && roleColorMap[value]) {
+      newTags[index] = {
+        ...newTags[index],
+        role: value,
+        textColor: roleColorMap[value].textColor,
+        backgroundColor: roleColorMap[value].backgroundColor,
+      };
+    } else {
+      newTags[index] = { ...newTags[index], [field]: value };
+    }
     setTags(newTags);
   };
 
