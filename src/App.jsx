@@ -224,7 +224,10 @@ function App() {
                 
                 <div className="space-y-4">
                   <input
-                    type="text"
+                    type="number"
+                    min="0"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
                     placeholder="Member Number"
                     value={tag.memberNumber}
                     onChange={(e) => updateTag(index, 'memberNumber', e.target.value)}
@@ -291,37 +294,51 @@ function App() {
           </div>
 
           {/* Right side - PDF Preview */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">PDF Preview</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={printPDF}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!areAllTagsComplete()}
-                  title={!areAllTagsComplete() ? "Please fill in all fields for all tags" : "Print PDF"}
-                >
-                  <PrinterIcon className="h-5 w-5" />
-                  Print PDF
-                </button>
-                <button
-                  onClick={downloadPDF}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!areAllTagsComplete()}
-                  title={!areAllTagsComplete() ? "Please fill in all fields for all tags" : "Download PDF"}
-                >
-                  <ArrowDownTrayIcon className="h-5 w-5" />
-                  Download PDF
-                </button>
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+            {/* Mobile-first responsive header */}
+            <div className="mb-4">
+              <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-start">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-1">PDF Preview</h2>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    {tags.length * 2} {tags.length * 2 === 1 ? 'page' : 'pages'} ({tags.length} {tags.length === 1 ? 'tag' : 'tags'}, 2 copies each)
+                  </p>
+                </div>
+                
+                {/* Buttons - stack vertically on mobile, horizontal on larger screens */}
+                <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-2 w-full sm:w-auto sm:flex-shrink-0">
+                  <button
+                    onClick={printPDF}
+                    className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    disabled={!areAllTagsComplete()}
+                    title={!areAllTagsComplete() ? "Please fill in all fields for all tags" : "Print PDF"}
+                  >
+                    <PrinterIcon className="h-4 w-4" />
+                    <span>Print PDF</span>
+                  </button>
+                  <button
+                    onClick={downloadPDF}
+                    className="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    disabled={!areAllTagsComplete()}
+                    title={!areAllTagsComplete() ? "Please fill in all fields for all tags" : "Download PDF"}
+                  >
+                    <ArrowDownTrayIcon className="h-4 w-4" />
+                    <span>Download PDF</span>
+                  </button>
+                </div>
               </div>
             </div>
             
             <div className="border rounded-lg overflow-hidden">
               <iframe
                 src={pdfUrl}
-                className="w-full h-[600px]"
+                className="w-full h-[300px] sm:h-[400px] lg:h-[600px] border-0"
                 title="PDF Preview"
               />
+              {/* Mobile-specific notice */}
+              <div className="bg-yellow-50 border-t border-yellow-200 p-3 text-sm text-yellow-800 sm:hidden">
+                📱 <strong>Mobile note:</strong> Preview may only show first page. Complete PDF includes all {tags.length * 2} {tags.length * 2 === 1 ? 'page' : 'pages'}.
+              </div>
             </div>
           </div>
         </div>
