@@ -244,7 +244,7 @@ function App() {
 
     Object.entries(roleGroups).forEach(([role, members]) => {
       const color = roleColorMap[role] || { textColor: '#000000', backgroundColor: '#ffffff' };
-      const sectionHeight = members.length * lineHeight + 4;
+      const sectionHeight = members.length * lineHeight + 6; // Extra space for role label + padding
       
       // Check if we need to switch column or side
       if (currentY + sectionHeight > maxY) {
@@ -273,19 +273,28 @@ function App() {
       const x = colIdx === 0 ? 5 : CR80_HEIGHT_MM / 2 + 2.5;  // Adjusted for portrait
       
       column.forEach(section => {
+        const sectionHeight = section.members.length * lineHeight + 4; // Extra space for role label
+        
         // Draw background
         doc.setFillColor(section.color.backgroundColor);
-        doc.rect(x, section.y, columnWidth, section.members.length * lineHeight + 2, 'F');
+        doc.rect(x, section.y, columnWidth, sectionHeight, 'F');
         
         // Draw text
         doc.setTextColor(section.color.textColor);
-        doc.setFontSize(9);
         
+        // Draw role label
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text(section.role, x + 2, section.y + 3);
+        
+        // Draw members
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
         section.members.forEach((member, idx) => {
           doc.text(
             `${member.memberName} ${member.memberNumber}`,
             x + 2,
-            section.y + 3 + idx * lineHeight
+            section.y + 6 + idx * lineHeight // Offset by role label height
           );
         });
       });
@@ -299,19 +308,28 @@ function App() {
         const x = colIdx === 0 ? 5 : CR80_HEIGHT_MM / 2 + 2.5;  // Adjusted for portrait
         
         column.forEach(section => {
+          const sectionHeight = section.members.length * lineHeight + 4; // Extra space for role label
+          
           // Draw background
           doc.setFillColor(section.color.backgroundColor);
-          doc.rect(x, section.y, columnWidth, section.members.length * lineHeight + 2, 'F');
+          doc.rect(x, section.y, columnWidth, sectionHeight, 'F');
           
           // Draw text
           doc.setTextColor(section.color.textColor);
-          doc.setFontSize(9);
           
+          // Draw role label
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          doc.text(section.role, x + 2, section.y + 3);
+          
+          // Draw members
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
           section.members.forEach((member, idx) => {
             doc.text(
               `${member.memberName} ${member.memberNumber}`,
               x + 2,
-              section.y + 3 + idx * lineHeight
+              section.y + 6 + idx * lineHeight // Offset by role label height
             );
           });
         });
