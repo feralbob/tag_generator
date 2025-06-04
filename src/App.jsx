@@ -66,7 +66,6 @@ function App() {
   const [pdfUrl, setPdfUrl] = useState('');
   
   // Roster-specific state
-  const [rosterSide, setRosterSide] = useState('front'); // 'front' or 'back'
   const [sortBy, setSortBy] = useState(() => 
     loadFromStorage('rosterSortBy', 'name')
   ); // 'name' or 'number'
@@ -220,6 +219,10 @@ function App() {
     generatePDF();
   }, [generatePDF]);
 
+  useEffect(() => {
+    generateRosterPDF();
+  }, [generateRosterPDF]);
+
   const areAllTagsComplete = useCallback(() => {
     if (!fireDepartment) return false;
     
@@ -269,6 +272,14 @@ function App() {
 
   // Roster-specific functions
   const generateRosterPDF = useCallback(() => {
+    // Don't generate if no valid members
+    const validRosterTags = debouncedTags.filter(tag => 
+      tag.memberNumber && tag.memberName && tag.role
+    );
+    if (validRosterTags.length === 0 || !debouncedFireDepartment) {
+      setRosterPdfUrl('');
+      return;
+    }
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -276,11 +287,7 @@ function App() {
     });
 
     // Sort and group members
-    const validTags = debouncedTags.filter(tag => 
-      tag.memberNumber && tag.memberName && tag.role
-    );
-    
-    const sortedMembers = [...validTags].sort((a, b) => {
+    const sortedMembers = [...validRosterTags].sort((a, b) => {
       // First sort by role
       const roleCompare = a.role.localeCompare(b.role);
       if (roleCompare !== 0) return roleCompare;
@@ -525,11 +532,8 @@ function App() {
             fireDepartment={fireDepartment}
             tags={tags}
             roleColorMap={roleColorMap}
-            rosterSide={rosterSide}
-            setRosterSide={setRosterSide}
             sortBy={sortBy}
             setSortBy={setSortBy}
-            generateRosterPDF={generateRosterPDF}
             downloadRosterPDF={downloadRosterPDF}
             printRosterPDF={printRosterPDF}
             rosterPdfUrl={rosterPdfUrl}
