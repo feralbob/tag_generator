@@ -280,6 +280,7 @@ function App() {
       setRosterPdfUrl('');
       return;
     }
+    
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
