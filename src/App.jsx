@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
 import { PlusIcon, TrashIcon, ArrowDownTrayIcon, PrinterIcon, RectangleStackIcon, IdentificationIcon } from '@heroicons/react/24/outline';
+import RosterCard from './RosterCard';
 
 const CR80_WIDTH_MM = 85.6;
 const CR80_HEIGHT_MM = 53.98;
@@ -38,6 +39,7 @@ function App() {
   // Roster-specific state
   const [rosterSide, setRosterSide] = useState('front'); // 'front' or 'back'
   const [sortBy, setSortBy] = useState('name'); // 'name' or 'number'
+  const [rosterPdfUrl, setRosterPdfUrl] = useState('');
 
   // Debounce the tags and fireDepartment values
   const debouncedTags = useDebounce(tags, 500);
@@ -191,6 +193,161 @@ function App() {
     }, 100);
 
     // Clear the interval after 10 seconds to prevent infinite checking
+    setTimeout(() => clearInterval(checkPDFLoaded), 10000);
+  };
+
+  // Roster-specific functions
+  const generateRosterPDF = useCallback(() => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: [CR80_HEIGHT_MM, CR80_WIDTH_MM]
+    });
+
+    // Sort and group members
+    const validTags = debouncedTags.filter(tag => 
+      tag.memberNumber && tag.memberName && tag.role
+    );
+    
+    const sortedMembers = [...validTags].sort((a, b) => {
+      // First sort by role
+      const roleCompare = a.role.localeCompare(b.role);
+      if (roleCompare !== 0) return roleCompare;
+      
+      // Then sort by selected criteria
+      if (sortBy === 'name') {
+        return a.memberName.localeCompare(b.memberName);
+      } else {
+        return parseInt(a.memberNumber) - parseInt(b.memberNumber);
+      }
+    });
+
+    // Group by role
+    const roleGroups = {};
+    sortedMembers.forEach(member => {
+      if (!roleGroups[member.role]) {
+        roleGroups[member.role] = [];
+      }
+      roleGroups[member.role].push(member);
+    });
+
+    // Distribute to columns
+    const columns = { front: [[], []], back: [[], []] };
+    let currentSide = 'front';
+    let currentColumn = 0;
+    let currentY = 10;
+    const maxY = CR80_HEIGHT_MM - 10;
+    const columnWidth = (CR80_WIDTH_MM - 15) / 2;
+    const lineHeight = 4;
+
+    Object.entries(roleGroups).forEach(([role, members]) => {
+      const color = roleColorMap[role] || { textColor: '#000000', backgroundColor: '#ffffff' };
+      const sectionHeight = members.length * lineHeight + 4;
+      
+      // Check if we need to switch column or side
+      if (currentY + sectionHeight > maxY) {
+        currentColumn++;
+        currentY = 10;
+        
+        if (currentColumn > 1) {
+          currentColumn = 0;
+          currentSide = 'back';
+        }
+      }
+      
+      // Store section data
+      columns[currentSide][currentColumn].push({
+        role,
+        members,
+        color,
+        y: currentY
+      });
+      
+      currentY += sectionHeight + 2;
+    });
+
+    // Draw front side
+    columns.front.forEach((column, colIdx) => {
+      const x = colIdx === 0 ? 5 : CR80_WIDTH_MM / 2 + 2.5;
+      
+      column.forEach(section => {
+        // Draw background
+        doc.setFillColor(section.color.backgroundColor);
+        doc.rect(x, section.y, columnWidth, section.members.length * lineHeight + 2, 'F');
+        
+        // Draw text
+        doc.setTextColor(section.color.textColor);
+        doc.setFontSize(9);
+        
+        section.members.forEach((member, idx) => {
+          doc.text(
+            `${member.memberName} ${member.memberNumber}`,
+            x + 2,
+            section.y + 3 + idx * lineHeight
+          );
+        });
+      });
+    });
+
+    // Add back side if needed
+    if (columns.back[0].length > 0 || columns.back[1].length > 0) {
+      doc.addPage();
+      
+      columns.back.forEach((column, colIdx) => {
+        const x = colIdx === 0 ? 5 : CR80_WIDTH_MM / 2 + 2.5;
+        
+        column.forEach(section => {
+          // Draw background
+          doc.setFillColor(section.color.backgroundColor);
+          doc.rect(x, section.y, columnWidth, section.members.length * lineHeight + 2, 'F');
+          
+          // Draw text
+          doc.setTextColor(section.color.textColor);
+          doc.setFontSize(9);
+          
+          section.members.forEach((member, idx) => {
+            doc.text(
+              `${member.memberName} ${member.memberNumber}`,
+              x + 2,
+              section.y + 3 + idx * lineHeight
+            );
+          });
+        });
+      });
+    }
+
+    const pdfBlob = doc.output('blob');
+    const url = URL.createObjectURL(pdfBlob);
+    setRosterPdfUrl(url);
+  }, [debouncedTags, debouncedFireDepartment, sortBy, roleColorMap]);
+
+  const downloadRosterPDF = () => {
+    if (!rosterPdfUrl) return;
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `${fireDepartment.replace(/\s+/g, '_')}_Roster_${date}.pdf`;
+    
+    const link = document.createElement('a');
+    link.href = rosterPdfUrl;
+    link.download = filename;
+    link.click();
+  };
+
+  const printRosterPDF = () => {
+    if (!rosterPdfUrl) return;
+    const printWindow = window.open(rosterPdfUrl);
+    
+    const checkPDFLoaded = setInterval(() => {
+      try {
+        if (printWindow.document.readyState === 'complete' && 
+            printWindow.document.querySelector('embed')?.getAttribute('type') === 'application/pdf') {
+          clearInterval(checkPDFLoaded);
+          printWindow.print();
+        }
+      } catch (e) {
+        clearInterval(checkPDFLoaded);
+      }
+    }, 100);
+
     setTimeout(() => clearInterval(checkPDFLoaded), 10000);
   };
 
@@ -379,12 +536,19 @@ function App() {
           </div>
         </div>
         ) : (
-          <div>
-            {/* Roster mode content will go here */}
-            <div className="text-center py-8">
-              <p className="text-gray-500">Roster card functionality coming soon...</p>
-            </div>
-          </div>
+          <RosterCard
+            fireDepartment={fireDepartment}
+            tags={tags}
+            roleColorMap={roleColorMap}
+            rosterSide={rosterSide}
+            setRosterSide={setRosterSide}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            generateRosterPDF={generateRosterPDF}
+            downloadRosterPDF={downloadRosterPDF}
+            printRosterPDF={printRosterPDF}
+            rosterPdfUrl={rosterPdfUrl}
+          />
         )}
       </div>
     </div>
