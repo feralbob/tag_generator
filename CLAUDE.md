@@ -32,7 +32,7 @@ npm run preview     # Preview production build locally
 - Uses jspdf library for client-side PDF generation
 - CR80 card size: 85.6mm × 53.98mm (standard credit card size)
 - Tag PDFs: Portrait orientation, 2 pages per member
-- Roster PDFs: Landscape orientation, front/back sides
+- Roster PDFs: Portrait orientation, front/back sides
 - PDF preview is debounced (500ms) for performance
 - All processing happens client-side - no server required
 

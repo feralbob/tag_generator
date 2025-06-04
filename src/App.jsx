@@ -201,7 +201,7 @@ function App() {
   // Roster-specific functions
   const generateRosterPDF = useCallback(() => {
     const doc = new jsPDF({
-      orientation: 'landscape',
+      orientation: 'portrait',
       unit: 'mm',
       format: [CR80_HEIGHT_MM, CR80_WIDTH_MM]
     });
@@ -238,8 +238,8 @@ function App() {
     let currentSide = 'front';
     let currentColumn = 0;
     let currentY = 10;
-    const maxY = CR80_HEIGHT_MM - 10;
-    const columnWidth = (CR80_WIDTH_MM - 15) / 2;
+    const maxY = CR80_WIDTH_MM - 10;  // Swapped since we're in portrait
+    const columnWidth = (CR80_HEIGHT_MM - 15) / 2;  // Swapped since we're in portrait
     const lineHeight = 4;
 
     Object.entries(roleGroups).forEach(([role, members]) => {
@@ -270,7 +270,7 @@ function App() {
 
     // Draw front side
     columns.front.forEach((column, colIdx) => {
-      const x = colIdx === 0 ? 5 : CR80_WIDTH_MM / 2 + 2.5;
+      const x = colIdx === 0 ? 5 : CR80_HEIGHT_MM / 2 + 2.5;  // Adjusted for portrait
       
       column.forEach(section => {
         // Draw background
@@ -296,7 +296,7 @@ function App() {
       doc.addPage();
       
       columns.back.forEach((column, colIdx) => {
-        const x = colIdx === 0 ? 5 : CR80_WIDTH_MM / 2 + 2.5;
+        const x = colIdx === 0 ? 5 : CR80_HEIGHT_MM / 2 + 2.5;  // Adjusted for portrait
         
         column.forEach(section => {
           // Draw background
