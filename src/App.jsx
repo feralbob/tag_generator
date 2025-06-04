@@ -272,10 +272,13 @@ function App() {
     const validRosterTags = debouncedTags.filter(tag => 
       tag.memberNumber && tag.memberName && tag.role
     );
+    
     if (validRosterTags.length === 0 || !debouncedFireDepartment) {
       setRosterPdfUrl('');
       return;
     }
+
+    try {
     
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -412,6 +415,11 @@ function App() {
     const pdfBlob = doc.output('blob');
     const url = URL.createObjectURL(pdfBlob);
     setRosterPdfUrl(url);
+    
+    } catch (error) {
+      console.error('Error generating roster PDF:', error);
+      setRosterPdfUrl('');
+    }
   }, [debouncedTags, debouncedFireDepartment, sortBy, roleColorMap]);
 
   useEffect(() => {

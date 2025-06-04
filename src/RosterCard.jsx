@@ -112,11 +112,36 @@ const RosterCard = ({
         </div>
         
         <div className="border rounded-lg overflow-hidden">
-          <iframe
-            src={rosterPdfUrl}
-            className="w-full h-[300px] sm:h-[400px] lg:h-[600px] border-0"
-            title="Roster PDF Preview"
-          />
+          {rosterPdfUrl ? (
+            <div className="relative">
+              <iframe
+                src={rosterPdfUrl}
+                className="w-full h-[300px] sm:h-[400px] lg:h-[600px] border-0"
+                title="Roster PDF Preview"
+                type="application/pdf"
+                width="100%"
+                height="100%"
+                sandbox="allow-same-origin"
+              />
+              <div className="absolute top-2 right-2">
+                <a
+                  href={rosterPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                >
+                  Open in New Tab
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-[300px] sm:h-[400px] lg:h-[600px] flex items-center justify-center bg-gray-50">
+              <div className="text-center text-gray-500">
+                <p className="text-lg mb-2">No Roster Preview</p>
+                <p className="text-sm">Add members in the Members tab to generate a roster</p>
+              </div>
+            </div>
+          )}
           <div className="bg-yellow-50 border-t border-yellow-200 p-3 text-sm text-yellow-800 sm:hidden">
             📱 <strong>Mobile note:</strong> Preview may only show first page. Complete PDF includes front and back sides.
           </div>
