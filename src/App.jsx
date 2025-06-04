@@ -25,27 +25,68 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
+// Helper functions for localStorage
+const loadFromStorage = (key, defaultValue) => {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultValue;
+  } catch (error) {
+    console.warn(`Failed to load ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+};
+
+const saveToStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.warn(`Failed to save ${key} to localStorage:`, error);
+  }
+};
+
 function App() {
   const [activeTab, setActiveTab] = useState('members'); // 'members', 'tags', or 'roster'
-  const [fireDepartment, setFireDepartment] = useState('');
-  const [tags, setTags] = useState([{
-    memberNumber: '',
-    memberName: '',
-    role: '',
-    textColor: '#000000',
-    backgroundColor: '#ffffff'
-  }]);
+  
+  // Load initial state from localStorage
+  const [fireDepartment, setFireDepartment] = useState(() => 
+    loadFromStorage('fireDepartment', '')
+  );
+  
+  const [tags, setTags] = useState(() => 
+    loadFromStorage('memberData', [{
+      memberNumber: '',
+      memberName: '',
+      role: '',
+      textColor: '#000000',
+      backgroundColor: '#ffffff'
+    }])
+  );
 
   const [pdfUrl, setPdfUrl] = useState('');
   
   // Roster-specific state
   const [rosterSide, setRosterSide] = useState('front'); // 'front' or 'back'
-  const [sortBy, setSortBy] = useState('name'); // 'name' or 'number'
+  const [sortBy, setSortBy] = useState(() => 
+    loadFromStorage('rosterSortBy', 'name')
+  ); // 'name' or 'number'
   const [rosterPdfUrl, setRosterPdfUrl] = useState('');
 
   // Debounce the tags and fireDepartment values
   const debouncedTags = useDebounce(tags, 500);
   const debouncedFireDepartment = useDebounce(fireDepartment, 500);
+
+  // Save to localStorage when data changes
+  useEffect(() => {
+    saveToStorage('fireDepartment', fireDepartment);
+  }, [fireDepartment]);
+
+  useEffect(() => {
+    saveToStorage('memberData', tags);
+  }, [tags]);
+
+  useEffect(() => {
+    saveToStorage('rosterSortBy', sortBy);
+  }, [sortBy]);
 
   // Role to color mapping
   const roleColorMap = {
@@ -86,6 +127,25 @@ function App() {
       newTags[index] = { ...newTags[index], [field]: value };
     }
     setTags(newTags);
+  };
+
+  const clearAllData = () => {
+    if (window.confirm('Are you sure you want to clear all member data? This cannot be undone.')) {
+      setFireDepartment('');
+      setTags([{
+        memberNumber: '',
+        memberName: '',
+        role: '',
+        textColor: '#000000',
+        backgroundColor: '#ffffff'
+      }]);
+      setSortBy('name');
+      
+      // Clear localStorage
+      localStorage.removeItem('fireDepartment');
+      localStorage.removeItem('memberData');
+      localStorage.removeItem('rosterSortBy');
+    }
   };
 
   const generatePDF = useCallback(() => {
@@ -435,6 +495,7 @@ function App() {
             tags={tags}
             setTags={setTags}
             roleColorMap={roleColorMap}
+            clearAllData={clearAllData}
           />
         )}
 

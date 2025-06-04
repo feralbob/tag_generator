@@ -1,12 +1,13 @@
 import React, { useRef, useEffect } from 'react';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const MemberEditor = ({ 
   fireDepartment, 
   setFireDepartment, 
   tags, 
   setTags, 
-  roleColorMap 
+  roleColorMap,
+  clearAllData
 }) => {
   const tableRef = useRef(null);
 
@@ -124,13 +125,23 @@ const MemberEditor = ({
               <span className="text-sm text-gray-600">
                 {validMembersCount} valid member{validMembersCount !== 1 ? 's' : ''}
               </span>
-              <button
-                onClick={addTag}
-                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2 text-sm"
-              >
-                <PlusIcon className="h-4 w-4" />
-                Add Row
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={clearAllData}
+                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-2 text-sm"
+                  title="Clear all member data"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  Clear All
+                </button>
+                <button
+                  onClick={addTag}
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2 text-sm"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  Add Row
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -235,6 +246,7 @@ const MemberEditor = ({
             <li>• <kbd className="px-1 py-0.5 bg-gray-200 rounded text-xs">Enter</kbd> - Move to next row</li>
             <li>• <kbd className="px-1 py-0.5 bg-gray-200 rounded text-xs">Tab</kbd> - Move to next field</li>
             <li>• Auto-saves as you type</li>
+            <li>• Data persists across browser sessions</li>
           </ul>
         </div>
       </div>
