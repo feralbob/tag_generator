@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
-import { PlusIcon, TrashIcon, ArrowDownTrayIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, ArrowDownTrayIcon, PrinterIcon, RectangleStackIcon, IdentificationIcon } from '@heroicons/react/24/outline';
 
 const CR80_WIDTH_MM = 85.6;
 const CR80_HEIGHT_MM = 53.98;
@@ -23,6 +23,7 @@ function useDebounce(value, delay) {
 }
 
 function App() {
+  const [mode, setMode] = useState('tags'); // 'tags' or 'roster'
   const [fireDepartment, setFireDepartment] = useState('');
   const [tags, setTags] = useState([{
     memberNumber: '',
@@ -33,6 +34,10 @@ function App() {
   }]);
 
   const [pdfUrl, setPdfUrl] = useState('');
+  
+  // Roster-specific state
+  const [rosterSide, setRosterSide] = useState('front'); // 'front' or 'back'
+  const [sortBy, setSortBy] = useState('name'); // 'name' or 'number'
 
   // Debounce the tags and fireDepartment values
   const debouncedTags = useDebounce(tags, 500);
@@ -192,11 +197,42 @@ function App() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">Fire Department Tag Generator</h1>
+        <h1 className="text-3xl font-bold mb-4 text-center">Fire Department {mode === 'tags' ? 'Tag' : 'Roster'} Generator</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left side - Tag Editor */}
-          <div className="space-y-6">
+        {/* Mode Toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex rounded-lg shadow-sm" role="group">
+            <button
+              type="button"
+              onClick={() => setMode('tags')}
+              className={`px-4 py-2 text-sm font-medium rounded-l-lg flex items-center gap-2 ${
+                mode === 'tags'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <IdentificationIcon className="h-4 w-4" />
+              Tag Generator
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('roster')}
+              className={`px-4 py-2 text-sm font-medium rounded-r-lg flex items-center gap-2 ${
+                mode === 'roster'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <RectangleStackIcon className="h-4 w-4" />
+              Roster Cards
+            </button>
+          </div>
+        </div>
+        
+        {mode === 'tags' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left side - Tag Editor */}
+            <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-4">Fire Department</h2>
               <input
@@ -342,6 +378,14 @@ function App() {
             </div>
           </div>
         </div>
+        ) : (
+          <div>
+            {/* Roster mode content will go here */}
+            <div className="text-center py-8">
+              <p className="text-gray-500">Roster card functionality coming soon...</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
