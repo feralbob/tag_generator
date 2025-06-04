@@ -5,7 +5,8 @@ const CR80_WIDTH_MM = 85.6;
 const CR80_HEIGHT_MM = 53.98;
 
 const RosterCard = ({ 
-  fireDepartment, 
+  fireDepartment,
+  setFireDepartment,
   tags, 
   roleColorMap, 
   rosterSide, 
@@ -110,14 +111,17 @@ const RosterCard = ({
         {sections.map((section, idx) => (
           <div
             key={idx}
-            className="flex-shrink-0 px-2 py-1"
+            className="flex-shrink-0 px-2 py-2 transition-colors"
             style={{
               backgroundColor: section.color.backgroundColor,
-              color: section.color.textColor
+              color: section.color.textColor,
+              borderBottom: idx < sections.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none'
             }}
           >
+            {/* Optional: Add role label */}
+            <div className="text-[10px] font-semibold opacity-75 mb-1">{section.role}</div>
             {section.members.map((member, memberIdx) => (
-              <div key={memberIdx} className="text-xs leading-tight">
+              <div key={memberIdx} className="text-xs leading-relaxed">
                 {member.memberName} {member.memberNumber}
               </div>
             ))}
@@ -131,6 +135,17 @@ const RosterCard = ({
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Left side - Roster Configuration */}
       <div className="space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Fire Department</h2>
+          <input
+            type="text"
+            placeholder="Fire Department Name"
+            value={fireDepartment}
+            onChange={(e) => setFireDepartment(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Roster Configuration</h2>
           

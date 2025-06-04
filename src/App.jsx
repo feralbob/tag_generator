@@ -538,6 +538,7 @@ function App() {
         ) : (
           <RosterCard
             fireDepartment={fireDepartment}
+            setFireDepartment={setFireDepartment}
             tags={tags}
             roleColorMap={roleColorMap}
             rosterSide={rosterSide}
