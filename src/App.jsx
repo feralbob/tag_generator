@@ -219,10 +219,6 @@ function App() {
     generatePDF();
   }, [generatePDF]);
 
-  useEffect(() => {
-    generateRosterPDF();
-  }, [generateRosterPDF]);
-
   const areAllTagsComplete = useCallback(() => {
     if (!fireDepartment) return false;
     
@@ -417,6 +413,10 @@ function App() {
     const url = URL.createObjectURL(pdfBlob);
     setRosterPdfUrl(url);
   }, [debouncedTags, debouncedFireDepartment, sortBy, roleColorMap]);
+
+  useEffect(() => {
+    generateRosterPDF();
+  }, [generateRosterPDF]);
 
   const downloadRosterPDF = () => {
     if (!rosterPdfUrl) return;
