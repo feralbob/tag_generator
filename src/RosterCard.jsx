@@ -6,7 +6,6 @@ const CR80_HEIGHT_MM = 53.98;
 
 const RosterCard = ({ 
   fireDepartment,
-  setFireDepartment,
   tags, 
   roleColorMap, 
   rosterSide, 
@@ -136,18 +135,11 @@ const RosterCard = ({
       {/* Left side - Roster Configuration */}
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Fire Department</h2>
-          <input
-            type="text"
-            placeholder="Fire Department Name"
-            value={fireDepartment}
-            onChange={(e) => setFireDepartment(e.target.value)}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Roster Configuration</h2>
+          <div className="mb-4">
+            <div className="text-sm text-gray-600">Fire Department:</div>
+            <div className="font-medium">{fireDepartment || 'Not set'}</div>
+          </div>
           
           <div className="space-y-4">
             <div>

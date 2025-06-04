@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
-import { PlusIcon, TrashIcon, ArrowDownTrayIcon, PrinterIcon, RectangleStackIcon, IdentificationIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, ArrowDownTrayIcon, PrinterIcon, RectangleStackIcon, IdentificationIcon, UsersIcon } from '@heroicons/react/24/outline';
 import RosterCard from './RosterCard';
+import MemberEditor from './MemberEditor';
+import TagGenerator from './TagGenerator';
 
 const CR80_WIDTH_MM = 85.6;
 const CR80_HEIGHT_MM = 53.98;
@@ -24,7 +26,7 @@ function useDebounce(value, delay) {
 }
 
 function App() {
-  const [mode, setMode] = useState('tags'); // 'tags' or 'roster'
+  const [activeTab, setActiveTab] = useState('members'); // 'members', 'tags', or 'roster'
   const [fireDepartment, setFireDepartment] = useState('');
   const [tags, setTags] = useState([{
     memberNumber: '',
@@ -351,194 +353,87 @@ function App() {
     setTimeout(() => clearInterval(checkPDFLoaded), 10000);
   };
 
+  const validMembersCount = tags.filter(tag => 
+    tag.memberNumber && tag.memberName && tag.role
+  ).length;
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4 text-center">Fire Department {mode === 'tags' ? 'Tag' : 'Roster'} Generator</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">Fire Department Management System</h1>
         
-        {/* Mode Toggle */}
+        {/* Tab Navigation */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex rounded-lg shadow-sm" role="group">
             <button
               type="button"
-              onClick={() => setMode('tags')}
+              onClick={() => setActiveTab('members')}
               className={`px-4 py-2 text-sm font-medium rounded-l-lg flex items-center gap-2 ${
-                mode === 'tags'
+                activeTab === 'members'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <UsersIcon className="h-4 w-4" />
+              Members
+              {validMembersCount > 0 && (
+                <span className="ml-1 text-xs bg-white/20 px-1.5 py-0.5 rounded">
+                  {validMembersCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('tags')}
+              className={`px-4 py-2 text-sm font-medium flex items-center gap-2 border-t border-b ${
+                activeTab === 'tags'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
               }`}
             >
               <IdentificationIcon className="h-4 w-4" />
-              Tag Generator
+              Tags
             </button>
             <button
               type="button"
-              onClick={() => setMode('roster')}
+              onClick={() => setActiveTab('roster')}
               className={`px-4 py-2 text-sm font-medium rounded-r-lg flex items-center gap-2 ${
-                mode === 'roster'
+                activeTab === 'roster'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
               }`}
             >
               <RectangleStackIcon className="h-4 w-4" />
-              Roster Cards
+              Roster
             </button>
           </div>
         </div>
         
-        {mode === 'tags' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left side - Tag Editor */}
-            <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Fire Department</h2>
-              <input
-                type="text"
-                placeholder="Fire Department Name"
-                value={fireDepartment}
-                onChange={(e) => setFireDepartment(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            {tags.map((tag, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold">Tag {index + 1}</h2>
-                  {tags.length > 1 && (
-                    <button
-                      onClick={() => removeTag(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  )}
-                </div>
-                
-                <div className="space-y-4">
-                  <input
-                    type="number"
-                    min="0"
-                    inputmode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="Member Number"
-                    value={tag.memberNumber}
-                    onChange={(e) => updateTag(index, 'memberNumber', e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Member Name"
-                    value={tag.memberName}
-                    onChange={(e) => updateTag(index, 'memberName', e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
-                  <select
-                    value={tag.role}
-                    onChange={(e) => updateTag(index, 'role', e.target.value)}
-                    className="w-full p-2 border rounded bg-white"
-                  >
-                    <option value="">Select Role</option>
-                    <option value="Probationary">Probationary</option>
-                    <option value="Firefighter">Firefighter</option>
-                    <option value="Water Supply">Water Supply</option>
-                    <option value="Ground Support">Ground Support</option>
-                    <option value="Lieutenant">Lieutenant</option>
-                    <option value="Captain">Captain</option>
-                    <option value="Deputy Chief">Deputy Chief</option>
-                    <option value="Chief">Chief</option>
-                  </select>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Text Color</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={tag.textColor}
-                          onChange={(e) => updateTag(index, 'textColor', e.target.value)}
-                          className="h-8 w-full p-0 border border-gray-300 rounded cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Background Color</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={tag.backgroundColor}
-                          onChange={(e) => updateTag(index, 'backgroundColor', e.target.value)}
-                          className="h-8 w-full p-0 border border-gray-300 rounded cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            <button
-              onClick={addTag}
-              className="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center justify-center gap-2"
-            >
-              <PlusIcon className="h-5 w-5" />
-              Add Another Tag
-            </button>
-          </div>
-
-          {/* Right side - PDF Preview */}
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-            {/* Mobile-first responsive header */}
-            <div className="mb-4">
-              <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-start">
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-lg sm:text-xl font-semibold mb-1">PDF Preview</h2>
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    {tags.length * 2} {tags.length * 2 === 1 ? 'page' : 'pages'} ({tags.length} {tags.length === 1 ? 'tag' : 'tags'}, 2 copies each)
-                  </p>
-                </div>
-                
-                {/* Buttons - stack vertically on mobile, horizontal on larger screens */}
-                <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-2 w-full sm:w-auto sm:flex-shrink-0">
-                  <button
-                    onClick={printPDF}
-                    className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                    disabled={!areAllTagsComplete()}
-                    title={!areAllTagsComplete() ? "Please fill in all fields for all tags" : "Print PDF"}
-                  >
-                    <PrinterIcon className="h-4 w-4" />
-                    <span>Print PDF</span>
-                  </button>
-                  <button
-                    onClick={downloadPDF}
-                    className="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                    disabled={!areAllTagsComplete()}
-                    title={!areAllTagsComplete() ? "Please fill in all fields for all tags" : "Download PDF"}
-                  >
-                    <ArrowDownTrayIcon className="h-4 w-4" />
-                    <span>Download PDF</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="border rounded-lg overflow-hidden">
-              <iframe
-                src={pdfUrl}
-                className="w-full h-[300px] sm:h-[400px] lg:h-[600px] border-0"
-                title="PDF Preview"
-              />
-              {/* Mobile-specific notice */}
-              <div className="bg-yellow-50 border-t border-yellow-200 p-3 text-sm text-yellow-800 sm:hidden">
-                📱 <strong>Mobile note:</strong> Preview may only show first page. Complete PDF includes all {tags.length * 2} {tags.length * 2 === 1 ? 'page' : 'pages'}.
-              </div>
-            </div>
-          </div>
-        </div>
-        ) : (
-          <RosterCard
+        {/* Tab Content */}
+        {activeTab === 'members' && (
+          <MemberEditor
             fireDepartment={fireDepartment}
             setFireDepartment={setFireDepartment}
+            tags={tags}
+            setTags={setTags}
+            roleColorMap={roleColorMap}
+          />
+        )}
+
+        {activeTab === 'tags' && (
+          <TagGenerator
+            fireDepartment={fireDepartment}
+            tags={tags}
+            pdfUrl={pdfUrl}
+            downloadPDF={downloadPDF}
+            printPDF={printPDF}
+            areAllTagsComplete={areAllTagsComplete}
+          />
+        )}
+
+        {activeTab === 'roster' && (
+          <RosterCard
+            fireDepartment={fireDepartment}
             tags={tags}
             roleColorMap={roleColorMap}
             rosterSide={rosterSide}
