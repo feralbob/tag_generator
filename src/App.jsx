@@ -58,7 +58,8 @@ function App() {
       memberName: '',
       role: '',
       textColor: '#000000',
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      selectedForPdf: true
     }])
   );
 
@@ -105,7 +106,8 @@ function App() {
       memberName: '',
       role: '',
       textColor: '#000000',
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      selectedForPdf: true
     }]);
   };
 
@@ -137,7 +139,8 @@ function App() {
         memberName: '',
         role: '',
         textColor: '#000000',
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        selectedForPdf: true
       }]);
       setSortBy('name');
       
@@ -155,7 +158,10 @@ function App() {
       format: [CR80_HEIGHT_MM, CR80_WIDTH_MM]
     });
 
-    debouncedTags.forEach((tag, tagIdx) => {
+    // Only include selected members
+    const selectedTags = debouncedTags.filter(tag => tag.selectedForPdf);
+    
+    selectedTags.forEach((tag, tagIdx) => {
       for (let i = 0; i < 2; i++) {
         // Only add a new page if this is not the very first page
         if (tagIdx !== 0 || i !== 0) doc.addPage();
@@ -217,7 +223,10 @@ function App() {
   const areAllTagsComplete = useCallback(() => {
     if (!fireDepartment) return false;
     
-    return tags.every(tag => 
+    const selectedTags = tags.filter(tag => tag.selectedForPdf);
+    if (selectedTags.length === 0) return false;
+    
+    return selectedTags.every(tag => 
       tag.memberNumber.trim() !== '' &&
       tag.memberName.trim() !== '' &&
       tag.role !== ''
@@ -503,6 +512,7 @@ function App() {
           <TagGenerator
             fireDepartment={fireDepartment}
             tags={tags}
+            setTags={setTags}
             pdfUrl={pdfUrl}
             downloadPDF={downloadPDF}
             printPDF={printPDF}

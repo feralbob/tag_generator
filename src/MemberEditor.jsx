@@ -17,7 +17,8 @@ const MemberEditor = ({
       memberName: '',
       role: '',
       textColor: '#000000',
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      selectedForPdf: true
     }]);
   };
 
