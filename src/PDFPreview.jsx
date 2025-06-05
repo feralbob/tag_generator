@@ -49,26 +49,14 @@ const PDFPreview = ({
       
       <div className="border rounded-lg overflow-hidden">
         {pdfUrl ? (
-          <div className="relative">
-            <iframe
-              src={pdfUrl}
-              className="w-full h-[300px] sm:h-[400px] lg:h-[600px] border-0"
-              title="PDF Preview"
-              type="application/pdf"
-              width="100%"
-              height="100%"
-            />
-            <div className="absolute top-2 right-2">
-              <a
-                href={pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
-              >
-                Open in New Tab
-              </a>
-            </div>
-          </div>
+          <iframe
+            src={pdfUrl}
+            className="w-full h-[300px] sm:h-[400px] lg:h-[600px] border-0"
+            title="PDF Preview"
+            type="application/pdf"
+            width="100%"
+            height="100%"
+          />
         ) : (
           <div className="w-full h-[300px] sm:h-[400px] lg:h-[600px] flex items-center justify-center bg-gray-50">
             <div className="text-center text-gray-500">
