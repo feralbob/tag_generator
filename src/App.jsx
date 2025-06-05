@@ -8,6 +8,17 @@ import TagGenerator from './TagGenerator';
 const CR80_WIDTH_MM = 85.6;
 const CR80_HEIGHT_MM = 53.98;
 
+// Role to color mapping - moved outside component to prevent re-creation
+const roleColorMap = {
+  'Firefighter': { textColor: '#FFFFFF', backgroundColor: '#FF0000' }, // White on Red
+  'Captain': { textColor: '#FFFFFF', backgroundColor: '#000000' },     // White on Black
+  'Ground Support': { textColor: '#FFFFFF', backgroundColor: '#00FF00' }, // White on Green
+  'Chief': { textColor: '#000000', backgroundColor: '#FFFFFF' },       // Black on White
+  'Deputy Chief': { textColor: '#000000', backgroundColor: '#FFFFFF' },// Black on White
+  'Lieutenant': { textColor: '#FFFFFF', backgroundColor: '#000000' },  // White on Black
+  'Water Supply': { textColor: '#FFFFFF', backgroundColor: '#0000FF' },  // White on Blue
+};
+
 // Custom debounce hook
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -87,17 +98,6 @@ function App() {
   useEffect(() => {
     saveToStorage('rosterSortBy', sortBy);
   }, [sortBy]);
-
-  // Role to color mapping
-  const roleColorMap = {
-    'Firefighter': { textColor: '#FFFFFF', backgroundColor: '#FF0000' }, // White on Red
-    'Captain': { textColor: '#FFFFFF', backgroundColor: '#000000' },     // White on Black
-    'Ground Support': { textColor: '#FFFFFF', backgroundColor: '#00FF00' }, // White on Green
-    'Chief': { textColor: '#000000', backgroundColor: '#FFFFFF' },       // Black on White
-    'Deputy Chief': { textColor: '#000000', backgroundColor: '#FFFFFF' },// Black on White
-    'Lieutenant': { textColor: '#FFFFFF', backgroundColor: '#000000' },  // White on Black
-    'Water Supply': { textColor: '#FFFFFF', backgroundColor: '#0000FF' },  // White on Blue
-  };
 
   const addTag = () => {
     setTags([...tags, {
@@ -212,7 +212,14 @@ function App() {
 
     const pdfBlob = doc.output('blob');
     const url = URL.createObjectURL(pdfBlob);
-    setPdfUrl(url);
+    
+    // Clean up previous URL to prevent memory leaks
+    setPdfUrl(prevUrl => {
+      if (prevUrl) {
+        URL.revokeObjectURL(prevUrl);
+      }
+      return url;
+    });
   }, [debouncedTags, debouncedFireDepartment]);
 
   useEffect(() => {
@@ -414,7 +421,14 @@ function App() {
 
     const pdfBlob = doc.output('blob');
     const url = URL.createObjectURL(pdfBlob);
-    setRosterPdfUrl(url);
+    
+    // Clean up previous URL to prevent memory leaks
+    setRosterPdfUrl(prevUrl => {
+      if (prevUrl) {
+        URL.revokeObjectURL(prevUrl);
+      }
+      return url;
+    });
     
     } catch (error) {
       console.error('Error generating roster PDF:', error);
