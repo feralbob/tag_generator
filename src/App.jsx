@@ -293,6 +293,65 @@ function App() {
       format: [CR80_HEIGHT_MM, CR80_WIDTH_MM]
     });
 
+    // Function to shorten names intelligently
+    const shortenName = (fullName, allNames, maxWidth) => {
+      // First try the full name
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      if (doc.getTextWidth(fullName) <= maxWidth) {
+        return fullName;
+      }
+
+      // Split name into parts
+      const nameParts = fullName.trim().split(/\s+/);
+      if (nameParts.length === 1) {
+        // Single name, truncate if needed
+        return fullName.substring(0, 10) + '...';
+      }
+
+      // Always use first name + surname initial as primary format
+      const firstName = nameParts[0];
+      const lastName = nameParts[nameParts.length - 1];
+      let shortened = `${firstName} ${lastName[0]}`;
+      
+      // Check for duplicates with same shortened form
+      const duplicates = allNames.filter(name => {
+        if (name === fullName) return false;
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) return false;
+        const otherFirst = parts[0];
+        const otherLast = parts[parts.length - 1];
+        return otherFirst === firstName && otherLast[0] === lastName[0];
+      });
+
+      // If duplicates exist, add more letters from the last name
+      if (duplicates.length > 0) {
+        let chars = 2;
+        while (chars <= lastName.length && duplicates.some(name => {
+          const parts = name.trim().split(/\s+/);
+          const otherLast = parts[parts.length - 1];
+          return otherLast.substring(0, chars) === lastName.substring(0, chars);
+        })) {
+          chars++;
+        }
+        shortened = `${firstName} ${lastName.substring(0, chars)}`;
+      }
+
+      // If still too long, shorten first name progressively
+      if (doc.getTextWidth(shortened) > maxWidth) {
+        // Try shortening first name to initial
+        const lastNamePart = shortened.split(' ')[1];
+        shortened = `${firstName[0]} ${lastNamePart}`;
+        
+        // If still too long, use just initials
+        if (doc.getTextWidth(shortened) > maxWidth) {
+          shortened = `${firstName[0]} ${lastName[0]}`;
+        }
+      }
+
+      return shortened;
+    };
+
     // Sort and group members
     const sortedMembers = [...validRosterTags].sort((a, b) => {
       // First sort by role
@@ -316,18 +375,23 @@ function App() {
       roleGroups[member.role].push(member);
     });
 
+    // Get all names for duplicate detection
+    const allNames = sortedMembers.map(m => m.memberName);
+
     // Distribute to columns
     const columns = { front: [[], []], back: [[], []] };
     let currentSide = 'front';
     let currentColumn = 0;
     let currentY = 10;
-    const maxY = CR80_WIDTH_MM - 10;  // Swapped since we're in portrait
-    const columnWidth = (CR80_HEIGHT_MM - 15) / 2;  // Swapped since we're in portrait
+    const maxY = CR80_WIDTH_MM - 10;
+    const columnWidth = (CR80_HEIGHT_MM - 10) / 2;
     const lineHeight = 4;
+    const roleHeaderHeight = 6;
+    const sectionPadding = 1.5;
 
     Object.entries(roleGroups).forEach(([role, members]) => {
       const color = roleColorMap[role] || { textColor: '#000000', backgroundColor: '#ffffff' };
-      const sectionHeight = members.length * lineHeight + 6; // Extra space for role label + padding
+      const sectionHeight = roleHeaderHeight + members.length * lineHeight + sectionPadding;
       
       // Check if we need to switch column or side
       if (currentY + sectionHeight > maxY) {
@@ -340,10 +404,16 @@ function App() {
         }
       }
       
-      // Store section data
+      // Store section data with shortened names
+      // columnWidth is about 22mm, reserve space for number and padding
+      const processedMembers = members.map(member => ({
+        ...member,
+        displayName: shortenName(member.memberName, allNames, columnWidth - 10)
+      }));
+
       columns[currentSide][currentColumn].push({
         role,
-        members,
+        members: processedMembers,
         color,
         y: currentY
       });
@@ -351,72 +421,57 @@ function App() {
       currentY += sectionHeight + 2;
     });
 
-    // Draw front side
-    columns.front.forEach((column, colIdx) => {
-      const x = colIdx === 0 ? 5 : CR80_HEIGHT_MM / 2 + 2.5;  // Adjusted for portrait
-      
-      column.forEach(section => {
-        const sectionHeight = section.members.length * lineHeight + 4; // Extra space for role label
-        
-        // Draw background
-        doc.setFillColor(section.color.backgroundColor);
-        doc.rect(x, section.y, columnWidth, sectionHeight, 'F');
-        
-        // Draw text
-        doc.setTextColor(section.color.textColor);
-        
-        // Draw role label
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text(section.role, x + 2, section.y + 3);
-        
-        // Draw members
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        section.members.forEach((member, idx) => {
-          doc.text(
-            `${member.memberName} ${member.memberNumber}`,
-            x + 2,
-            section.y + 6 + idx * lineHeight // Offset by role label height
-          );
-        });
-      });
-    });
-
-    // Add back side if needed
-    if (columns.back[0].length > 0 || columns.back[1].length > 0) {
-      doc.addPage();
-      
-      columns.back.forEach((column, colIdx) => {
-        const x = colIdx === 0 ? 5 : CR80_HEIGHT_MM / 2 + 2.5;  // Adjusted for portrait
+    // Helper function to draw a side
+    const drawSide = (sideColumns) => {
+      sideColumns.forEach((column, colIdx) => {
+        const x = colIdx === 0 ? 5 : CR80_HEIGHT_MM / 2;
         
         column.forEach(section => {
-          const sectionHeight = section.members.length * lineHeight + 4; // Extra space for role label
+          const sectionHeight = roleHeaderHeight + section.members.length * lineHeight;
           
           // Draw background
           doc.setFillColor(section.color.backgroundColor);
           doc.rect(x, section.y, columnWidth, sectionHeight, 'F');
           
-          // Draw text
+          // Draw role label with underline
           doc.setTextColor(section.color.textColor);
-          
-          // Draw role label
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'bold');
-          doc.text(section.role, x + 2, section.y + 3);
-          
-          // Draw members
           doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.text(section.role, x + columnWidth / 2, section.y + 4, { align: 'center' });
+          
+          // Draw underline for role
+          const roleWidth = doc.getTextWidth(section.role);
+          doc.setLineWidth(0.3);
+          doc.line(
+            x + (columnWidth - roleWidth) / 2,
+            section.y + 4.5,
+            x + (columnWidth + roleWidth) / 2,
+            section.y + 4.5
+          );
+          
+          // Draw members with left/right alignment
+          doc.setFontSize(8);
           doc.setFont('helvetica', 'normal');
           section.members.forEach((member, idx) => {
-            doc.text(
-              `${member.memberName} ${member.memberNumber}`,
-              x + 2,
-              section.y + 6 + idx * lineHeight // Offset by role label height
-            );
+            const memberY = section.y + roleHeaderHeight + idx * lineHeight + 2.5;
+            
+            // Left align name
+            doc.text(member.displayName, x + 2, memberY);
+            
+            // Right align number
+            doc.text(member.memberNumber, x + columnWidth - 2, memberY, { align: 'right' });
           });
         });
       });
+    };
+
+    // Draw front side
+    drawSide(columns.front);
+
+    // Add back side if needed
+    if (columns.back[0].length > 0 || columns.back[1].length > 0) {
+      doc.addPage();
+      drawSide(columns.back);
     }
 
     const pdfBlob = doc.output('blob');
